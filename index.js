@@ -1,8 +1,11 @@
-module.exports = function (stream, iterator, options) {
+module.exports = function (stream, filter, iterator, options) {
   var batch = [];
   var batchSize = options.batchSize;
   return new Promise(function (resolve, reject) {
     stream.on('data', function (doc) {
+      if(filter && !filter(doc)) {
+        return;
+      }
       batch.push(doc);
       if(batch.length < batchSize) {
         return;
