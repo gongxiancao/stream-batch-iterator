@@ -2,6 +2,14 @@ module.exports = function (stream, filter, iterator, options) {
   var batch = [];
   var batchSize = options.batchSize;
   return new Promise(function (resolve, reject) {
+    var resolved = false;
+    function resolveOnce() {
+      if(!resolved) {
+        return resolve();
+      }
+      resolved = true;
+    }
+
     stream.on('data', function (doc) {
       if(filter && !filter(doc)) {
         return;
@@ -26,8 +34,11 @@ module.exports = function (stream, filter, iterator, options) {
       return null;
     })
     .on('error', reject)
+    .on('end', function () {
+      resolveOnce();
+    })
     .on('close', function () {
-      resolve();
+      resolveOnce();
     });
   })
   .then(function () {
